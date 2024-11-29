@@ -5,6 +5,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras import layers, models, callbacks
+from tensorflow.keras.models import load_model
+import tensorflow as tf
 
 def preprocess_data(data_path, categories, img_size, test_size, val_size, random_state):
     # Create lists to store data and labels
@@ -70,20 +73,80 @@ def preprocess_data(data_path, categories, img_size, test_size, val_size, random
 
     return X_train, X_val, X_test, y_train, y_val, y_test
 
-def build_model():
-    pass
+def build_model(input_shape, num_classes):
+    """
+    Build a CNN model.
+    """
+    model = models.Sequential()
 
-def train_model():
-    pass
+    # Convolutional and Pooling Layers
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-def evaluate_model():
-    pass
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-def save_model():
-    pass
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
 
-def load_model():
-    pass
+    # Flatten and Fully Connected Layers
+    model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(num_classes, activation='softmax'))
+
+    return model
+
+
+def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs):
+    """
+    Train the CNN model.
+    """
+    model.compile(
+        optimizer='adam',  # Optimizer
+        loss='categorical_crossentropy',  # Loss function
+        metrics=['accuracy']  # Evaluation metric
+    )
+
+    early_stop = callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_val, y_val),
+        batch_size=batch_size,
+        epochs=epochs,
+        callbacks=[early_stop]
+    )
+
+    return model, history
+
+def calculate_metrics(history):
+    """
+    Calculate performance metrics from training history.
+    """
+    train_accuracy = history.history['accuracy'][-1]
+    val_accuracy = history.history['val_accuracy'][-1]
+    train_loss = history.history['loss'][-1]
+    val_loss = history.history['val_loss'][-1]
+
+    print(f"Final Training Accuracy: {train_accuracy:.4f}")
+    print(f"Final Validation Accuracy: {val_accuracy:.4f}")
+    print(f"Final Training Loss: {train_loss:.4f}")
+    print(f"Final Validation Loss: {val_loss:.4f}")
+
+def evaluate_model(model, X_test, y_test):
+    test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+    print(f"Test Loss: {test_loss:.4f}")
+
+def save_model(model, filename='chest_xray_model.h5'):
+    model.save(filename)
+    print(f"Model saved as {filename}")
+
+def load_saved_model(filename='chest_xray_model.h5'):
+    model = load_model(filename)
+    print(f"Model loaded from {filename}")
+    return model
 
 def predict_image():
     pass
@@ -105,6 +168,28 @@ def main():
     # Preprocess the chest x-ray data
     X_train, X_val, X_test, y_train, y_val, y_test = preprocess_data(data_path, categories, img_size, test_size, val_size, random_state)
 
+    # Model Parameters
+    input_shape = (img_size, img_size, 1)  # Grayscale images
+    num_classes = len(categories)
+    batch_size = 32
+    epochs = 25
+
+    # Build and Train Model
+    model = build_model(input_shape, num_classes)
+    model, history = train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs)
+
+    # Evaluate and Report Metrics
+    calculate_metrics(history)
+    
+    # Save the model for further evaluation
+    save_model(model)
+    
+    # Load the saved model
+    loaded_model = load_saved_model('chest_xray_model.h5')
+
+    # Evaluate the loaded model on the test set
+    evaluate_model(loaded_model, X_test, y_test)
+    
     return
 
 if __name__ == "__main__":
