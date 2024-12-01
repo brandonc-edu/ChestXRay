@@ -8,6 +8,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras import layers, models, callbacks
 from tensorflow.keras.models import load_model
 import tensorflow as tf
+from sklearn.utils.class_weight import compute_class_weight
 
 def preprocess_data(data_path, categories, img_size, test_size, val_size, random_state):
     # Create lists to store data and labels
@@ -97,10 +98,9 @@ def build_model(input_shape, num_classes):
 
     return model
 
-
-def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs):
+def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs, class_weights=None):
     """
-    Train the CNN model.
+    Train the CNN model with class weights.
     """
     model.compile(
         optimizer='adam',  # Optimizer
@@ -115,7 +115,8 @@ def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs):
         validation_data=(X_val, y_val),
         batch_size=batch_size,
         epochs=epochs,
-        callbacks=[early_stop]
+        callbacks=[early_stop],
+        class_weight=class_weights 
     )
 
     return model, history
@@ -174,9 +175,19 @@ def main():
     batch_size = 32
     epochs = 25
 
+    # Compute class weights based on training labels
+    class_weights = compute_class_weight(
+        class_weight='balanced', 
+        classes=np.unique(y_train.argmax(axis=1)), 
+        y=y_train.argmax(axis=1)
+    )
+    class_weights = dict(enumerate(class_weights))  # Convert to dictionary
+    
     # Build and Train Model
     model = build_model(input_shape, num_classes)
-    model, history = train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs)
+    model, history = train_model(
+        model, X_train, y_train, X_val, y_val, batch_size, epochs, class_weights=class_weights
+    )
 
     # Evaluate and Report Metrics
     calculate_metrics(history)
