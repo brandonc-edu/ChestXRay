@@ -10,69 +10,84 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 from sklearn.utils.class_weight import compute_class_weight
 
-def preprocess_data(data_path, categories, img_size, test_size, val_size, random_state):
-    # Create lists to store data and labels
-    data = []
-    labels = []
+# Preprocess the data to be used in the model
+def preprocess_data(path, directories, IMAGE_SIZE, test_val_size):
+    # Retrieve directory of the dataset
+    path = os.path.abspath(path) + "/"
 
-    # Load the images and their respective labels
-    print("Loading images...")
-    for category in categories:
-        path = os.path.join(data_path, category)
-        class_num = categories.index(category)  # Assign class label
-        for img in os.listdir(path):
-            try:
-                img_path = os.path.join(path, img)
-                image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Load the image in grayscale
-                image = cv2.resize(image, (img_size, img_size))  # Resize image to specified size
-                data.append(image)
-                labels.append(class_num)
-            except Exception as e:
-                print(f"Error loading image {img}: {e}")
+    # For plotting purposes
+    samples = [] # Store a sample image from each category
+    count_images = [] # Count number of data samples in each category
 
-    print("Image loading complete.")
 
-    # Convert data and labels to numpy arrays
-    data = np.array(data).reshape(-1, img_size, img_size, 1)
-    data = data / 255.0  # Normalize pixel values to the range [0, 1]
-    labels = np.array(labels)
+    xray_images = [] # Store all images
+    target = [] # Store all target labels
 
-    # One-hot encode the labels
-    labels = to_categorical(labels, num_classes=len(categories))
+    for i, directory in enumerate(directories):
+        images = os.listdir(path + directory) # Get all images for each category
+        sample_image = None # Store 1 sample image for each categor
 
-    # Split dataset into training, validation, and test sets
-    X_train, X_temp, y_train, y_temp = train_test_split(data, labels, test_size=test_size, random_state=random_state)
-    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=val_size, random_state=random_state)
+        for image_name in images:
+            # Convert image to grayscale, resize, and store image with label
+            image = cv2.imread(path + directory + "/" + image_name, cv2.IMREAD_GRAYSCALE)
+            resized_image = cv2.resize(image, (IMAGE_SIZE, IMAGE_SIZE))
+            xray_images.append(resized_image)
+            target.append(i)
 
-    # Print dataset sizes
-    print(f"Training set size: {len(X_train)}")
-    print(f"Validation set size: {len(X_val)}")
-    print(f"Test set size: {len(X_test)}")
+            # Only need the first sample image for each category
+            if sample_image is None:
+                sample_image = resized_image
+        
+        # Plotting purposes
+        samples.append(sample_image)
+        count_images.append(len(images))
+    
+    # Plot class distrubution
+    plot_class_distribution(directories, count_images)
 
-    # Visualize label distribution
-    label_counts = pd.Series(labels.argmax(axis=1)).value_counts(normalize=True) * 100
-    plt.figure(figsize=(10, 6))
-    plt.bar(categories, label_counts, color='skyblue')
-    plt.xlabel('Class')
-    plt.ylabel('Percentage')
-    plt.title('Label Distribution (%)')
-    plt.show()
+    # Plot samples images
+    plot_sample_images(directories, samples)
+    
+    # Convert data into numpy arrays
+    xray_images = np.array(xray_images)
+    target = np.array(target)
 
-    # Visualize a sample image from each class
-    plt.figure(figsize=(12, 8))
-    for i, category in enumerate(categories):
-        path = os.path.join(data_path, category)
-        img_path = os.path.join(path, os.listdir(path)[0])
-        image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        image = cv2.resize(image, (img_size, img_size))
-        plt.subplot(1, len(categories), i + 1)
-        plt.imshow(image, cmap='gray')
-        plt.title(category)
-        plt.axis('off')
-    plt.suptitle('Sample Grayscale Images from Each Class')
-    plt.show()
+    # Reshape and normalize
+    xray_images = xray_images.reshape(-1, IMAGE_SIZE, IMAGE_SIZE, 1)
+    xray_images = xray_images / 255.0
+
+    # One-hot encode labels
+    target = to_categorical(target, num_classes=len(directories))
+
+    # Split data into train, validate, and test sets
+    X_train, X_test_valid, y_train, y_test_valid = train_test_split(xray_images, target, test_size = test_val_size, random_state=42)
+    X_val, X_test, y_val, y_test = train_test_split(X_test_valid, y_test_valid, test_size = 0.5, random_state=42)
+
+    print("Size of Training Dataset:", len(X_train))
+    print("Size of Validation Dataset:", len(X_val))
+    print("Size of Test Dataset:", len(X_test))
 
     return X_train, X_val, X_test, y_train, y_val, y_test
+
+# Plot class distribution
+def plot_class_distribution(categories, num_images_per_category):
+    plt.figure(figsize=(10, 6))
+    plt.bar(categories, num_images_per_category, color='blue')
+    plt.xlabel('Categories')
+    plt.ylabel('Number of Samples')
+    plt.title('Class Distribution (# of Samples)')
+    plt.show()
+
+# Plot sample images
+def plot_sample_images(categories, samples):
+    plt.figure(figsize=(12, 8))
+    for i, category in enumerate(categories):
+        plt.subplot(1, len(categories), i + 1)
+        plt.imshow(samples[i], cmap='gray')
+        plt.title(category)
+        plt.axis('off')
+    plt.suptitle('Grayscaled and Resized Chest Xrays from Each Category')
+    plt.show()
 
 def build_model(input_shape, num_classes):
     """
@@ -159,19 +174,16 @@ def plot_confusion_matrix():
     pass
 
 def main():
-    data_path="data"
-    categories=["COVID19", "NORMAL", "PNEUMONIA", "TURBERCULOSIS"]
-    img_size=224
-    test_size=0.3
-    val_size=0.5
-    random_state=42
+    directory_path = "data"
+    directories = ["COVID19", "NORMAL", "PNEUMONIA", "TURBERCULOSIS"]
+    IMAGE_SIZE = 224
+    test_valid_size = 0.3
 
-    # Preprocess the chest x-ray data
-    X_train, X_val, X_test, y_train, y_val, y_test = preprocess_data(data_path, categories, img_size, test_size, val_size, random_state)
+    X_train, X_val, X_test, y_train, y_val, y_test = preprocess_data(directory_path, directories, IMAGE_SIZE, test_valid_size)
 
     # Model Parameters
-    input_shape = (img_size, img_size, 1)  # Grayscale images
-    num_classes = len(categories)
+    input_shape = (IMAGE_SIZE, IMAGE_SIZE, 1)  # Grayscale images
+    num_classes = len(directories)
     batch_size = 32
     epochs = 25
 
