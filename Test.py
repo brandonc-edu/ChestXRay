@@ -1,6 +1,7 @@
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 from sklearn.metrics import recall_score, precision_score, accuracy_score, f1_score, confusion_matrix
+import pickle
 
 def evaluate_model(model, X, y, set_name='Test'):
     """
@@ -47,8 +48,9 @@ def plot_confusion_matrix(conf_mat):
     """
     pass
 
-def load_saved_model(filename='chest_xray_model.h5'):
-    model = load_model(filename)
+def load_saved_model(filename='chest_xray_model.pkl'):
+    with open(filename, 'rb') as file:
+        model = pickle.load(file)
     print(f"Model loaded from {filename}")
     return model
 
@@ -56,7 +58,7 @@ def main():
     # Load Test Data
 
     # Load the saved model
-    loaded_model = load_saved_model('chest_xray_model.h5')
+    loaded_model = load_saved_model('chest_xray_model.pkl')
 
     # Evaluate the loaded model on the test set
     evaluate_model(loaded_model, X_test, y_test)

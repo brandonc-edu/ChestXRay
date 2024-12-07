@@ -1,5 +1,7 @@
-data/
+Chest X_Ray Dataset/
 *.h5
+*.pkl
+*.npy
 __pycache__/
 env/
 venv/

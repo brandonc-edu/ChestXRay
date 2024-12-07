@@ -10,6 +10,7 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import recall_score, precision_score, accuracy_score, f1_score, confusion_matrix
+import pickle
 
 # Preprocess the data to be used in the model
 def preprocess_data(path, directories, IMAGE_SIZE, test_val_size):
@@ -198,12 +199,14 @@ def evaluate_model(model, X, y, set_name='Test'):
 
 
 
-def save_model(model, filename='chest_xray_model.h5'):
-    model.save(filename)
+def save_model(model, filename='chest_xray_model.pkl'):
+    with open(filename, 'wb') as file:
+        pickle.dump(model, file)
     print(f"Model saved as {filename}")
 
-def load_saved_model(filename='chest_xray_model.h5'):
-    model = load_model(filename)
+def load_saved_model(filename='chest_xray_model.pkl'):
+    with open(filename, 'rb') as file:
+        model = pickle.load(file)
     print(f"Model loaded from {filename}")
     return model
 
@@ -254,7 +257,7 @@ def main():
     save_model(model)
     
     # Load the saved model
-    loaded_model = load_saved_model('chest_xray_model.h5')
+    loaded_model = load_saved_model('chest_xray_model.pkl')
 
     # Evaluate the loaded model on the test set
     evaluate_model(loaded_model, X_test, y_test)

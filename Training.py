@@ -8,6 +8,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras import layers, models, callbacks
 import tensorflow as tf
 from sklearn.utils.class_weight import compute_class_weight
+import pickle
 
 # Preprocess the data to be used in the model
 def preprocess_data(path, directories, IMAGE_SIZE, test_val_size):
@@ -169,8 +170,9 @@ def calculate_metrics(history):
 
     # Plot the history of loss + accuracy over training.
 
-def save_model(model, filename='chest_xray_model.h5'):
-    model.save(filename)
+def save_model(model, filename='chest_xray_model.pkl'):
+    with open(filename, 'wb') as file:
+        pickle.dump(model, file)
     print(f"Model saved as {filename}")
 
 def main():
