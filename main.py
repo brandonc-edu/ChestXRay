@@ -9,6 +9,7 @@ from tensorflow.keras import layers, models, callbacks
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 from sklearn.utils.class_weight import compute_class_weight
+from sklearn.metrics import recall_score, precision_score, accuracy_score, f1_score, confusion_matrix
 
 # Preprocess the data to be used in the model
 def preprocess_data(path, directories, IMAGE_SIZE, test_val_size):
@@ -139,7 +140,11 @@ def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs, class
 def calculate_metrics(history):
     """
     Calculate performance metrics from training history.
+
+    TO BE IMPLEMENTED: Plot of losses & accuracy over training
     """
+    epochs = len(history.history['accuracy'])
+
     train_accuracy = history.history['accuracy'][-1]
     val_accuracy = history.history['val_accuracy'][-1]
     train_loss = history.history['loss'][-1]
@@ -150,10 +155,48 @@ def calculate_metrics(history):
     print(f"Final Training Loss: {train_loss:.4f}")
     print(f"Final Validation Loss: {val_loss:.4f}")
 
-def evaluate_model(model, X_test, y_test):
-    test_loss, test_accuracy = model.evaluate(X_test, y_test)
-    print(f"Test Accuracy: {test_accuracy:.4f}")
-    print(f"Test Loss: {test_loss:.4f}")
+    # Plot the history of loss + accuracy over training.
+
+def evaluate_model(model, X, y, set_name='Test'):
+    """
+        Evaluates final model performance on given X & y set using a variety of metrics & graphical analyses.
+
+        Metrics used:
+        - Accuracy
+        - Recall
+        - Precision
+        - F1-Score
+        
+        Graphical Analyses:
+        - ROC Curve (TO BE IMPLEMENTED)
+        - Confusion Matrix (TO BE IMPLEMENTED)
+    """
+    loss, accuracy = model.evaluate(X, y)
+    print(f"{set_name} Accuracy: {accuracy:.4f}")
+    print(f"{set_name} Loss: {loss:.4f}")
+
+    # Get predictions
+    y_preds = model.predict(X).numpy()
+    y_true = y.numpy()
+
+    # Calculate metrics
+    precision = precision_score(y_true, y_preds)
+    recall = recall_score(y_true, y_preds)
+    f1 = f1_score(y_true, y_preds)
+    conf_matrix = confusion_matrix(y_true, y_preds)
+
+    # Print metrics
+    print(f"Model {set_name} Precision: {precision:.4f}")
+    print(f"Model {set_name} Recall: {recall:.4f}")
+    print(f"Model {set_name} f1-score: {f1:.4f}")
+    ## Below two lines will be phased out once plot_confusion_matrix() is finished.
+    print(f"Confusion Matrix for {set_name} Set predictions:") 
+    print(conf_matrix)
+    # plot_confusion_matrix(conf_matrix)
+
+    # Plot ROC Curve
+
+
 
 def save_model(model, filename='chest_xray_model.h5'):
     model.save(filename)
@@ -170,7 +213,10 @@ def predict_image():
 def augment_data():
     pass
 
-def plot_confusion_matrix():
+def plot_confusion_matrix(conf_mat):
+    """
+        Plots the confusion matrix given confusion matrix.
+    """
     pass
 
 def main():
