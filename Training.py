@@ -62,11 +62,19 @@ def preprocess_data(path, directories, IMAGE_SIZE, test_val_size):
     X_train, X_test_valid, y_train, y_test_valid = train_test_split(xray_images, target, test_size = test_val_size, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_test_valid, y_test_valid, test_size = 0.5, random_state=42)
 
+    # Save the datasets as .npy files
+    np.save("X_train.npy", X_train)
+    np.save("X_val.npy", X_val)
+    np.save("X_test.npy", X_test)
+    np.save("Y_train.npy", y_train)
+    np.save("Y_val.npy", y_val)
+    np.save("Y_test.npy", y_test)
+
     print("Size of Training Dataset:", len(X_train))
     print("Size of Validation Dataset:", len(X_val))
     print("Size of Test Dataset:", len(X_test))
 
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    return X_train, X_val, y_train, y_val
 
 def predict_image():
     pass
@@ -166,12 +174,12 @@ def save_model(model, filename='chest_xray_model.h5'):
     print(f"Model saved as {filename}")
 
 def main():
-    directory_path = "data"
+    directory_path = "Chest X_Ray Dataset"
     directories = ["COVID19", "NORMAL", "PNEUMONIA", "TURBERCULOSIS"]
     IMAGE_SIZE = 224
     test_valid_size = 0.3
 
-    X_train, X_val, X_test, y_train, y_val, y_test = preprocess_data(directory_path, directories, IMAGE_SIZE, test_valid_size)
+    X_train, X_val, y_train, y_val = preprocess_data(directory_path, directories, IMAGE_SIZE, test_valid_size)
 
     # Model Parameters
     input_shape = (IMAGE_SIZE, IMAGE_SIZE, 1)  # Grayscale images
