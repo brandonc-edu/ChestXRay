@@ -35,7 +35,7 @@ def evaluate_model(model, X, y, set_name='Test', labels=[0, 1, 2, 3], classes=["
     # Print metrics
     print(f"Model {set_name} Precision: {precision:.2f}%")
     print(f"Model {set_name} Recall: {recall:.2f}%")
-    print(f"Model {set_name} f1-score: {f1:.2f}%")
+    print(f"Model {set_name} F1-Score: {f1:.2f}%")
     ## Below two lines may be phased out once plot_confusion_matrix() is finished.
     print(f"Confusion Matrix for {set_name} Set predictions:") 
     print(conf_matrix)
