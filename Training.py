@@ -150,6 +150,36 @@ def train_model(model, X_train, y_train, X_val, y_val, batch_size, epochs, class
 
     return model, history
 
+def PlotMetrics(trainLosses, trainAccs, valLosses, valAccs, epochs):
+    """
+        Given training & validations losses, plot their losses over all epochs.
+    """
+    epoch_axis = np.arange(0, epochs, 1)
+    fig, (ax1, ax2) = plt.subplots(figsize=(8, 12), nrows=1, ncols=2)
+    fig.tight_layout()
+
+    # Loss plot
+    ax1.plot(epoch_axis, trainLosses, c="lightblue", alpha=0.5, label="Training Loss")
+    ax1.plot(epoch_axis, valLosses, c="orange", alpha=0.5, label="Validation Loss")
+
+    ax1.set_xlabel("Epochs")
+    ax1.set_ylabel("Loss")
+    loss_title_string = f"Training and Validation Cross-Entropy Loss after {epochs} epochs"
+    ax1.set_title(loss_title_string)
+    ax1.legend()
+
+    # Accuracy Plot
+    ax2.plot(epoch_axis, trainAccs, c="lightblue", alpha=0.5, label="Training Accuracy")
+    ax2.plot(epoch_axis, valAccs, c="orange", alpha=0.5, label="Validation Accuracy")
+
+    ax2.set_xlabel("Epochs")
+    ax2.set_ylabel("Accuracy")
+    acc_title_string = f"Training and Validation Accuracy after {epochs} epochs"
+    ax2.set_title(acc_title_string)
+    ax2.legend()
+
+    plt.show()
+
 def calculate_metrics(history):
     """
     Calculate performance metrics from training history.
@@ -169,6 +199,7 @@ def calculate_metrics(history):
     print(f"Final Validation Loss: {val_loss:.4f}")
 
     # Plot the history of loss + accuracy over training.
+    PlotMetrics(history.history['loss'], history.history['accuracy'], history.history['val_loss'], history.history['val_accuracy'], epochs)
 
 def save_model(model, filename='chest_xray_model.pkl'):
     with open(filename, 'wb') as file:
