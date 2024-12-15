@@ -73,11 +73,6 @@ def evaluate_model(model, X, y, set_name='Test', labels=[0, 1, 2, 3], classes=["
     # Plot 2D Kernel Density Plot using t-SNE
     plot_KDE_hit_miss(X, y_true, y_preds, classes)
 
-    # if os.path.isfile('X_tsne_2D.npy'):
-    #     X_reduced = np.load('X_tsne_2D.npy')
-    # else:
-    #     X_reduced = TSNE(random_state=42).fit_transform(X.reshape(len(X), -1))
-    #     np.save('X_tsne_2D.npy', X_reduced)
 
 
 def PlotROCCurve(y_true_raw, y_preds_proba, classes):
@@ -166,7 +161,7 @@ def main():
     X_test, y_test = np.load('X_test.npy'), np.load('Y_test.npy')
 
     # Load the saved model
-    loaded_model = load_saved_model('chest_xray_model.pkl')
+    loaded_model = load_saved_model('chest_xray_model.pkl') 
 
     # Evaluate the loaded model on the test set
     evaluate_model(loaded_model, X_test, y_test)
