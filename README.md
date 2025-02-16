@@ -11,7 +11,7 @@ As mentioned previously, chest X-rays can be a critical component of a patientâ€
 
 ## Dataset
 
-The chest X-ray dataset has been retrieved from [Kaggle](https://www.kaggle.com/datasets/pritpal2873/chest-x-ray-dataset-4-categories/data), with the dataset being sourced on Kaggle, and created and used for a [research paper](https://ijnrd.org/papers/IJNRD2311166.pdf) by Pritpal Singh. The dataset comprises 7132 samples with 4273 samples of Pneumonia, 576 samples of COVID-19, 700 samples of Tuberculosis, and 1583 samples of normal chest X-rays. The feature set will be composed of all the pixel values for each image, however, there are varying sizes of images within the entire dataset, so no exact number of features can be given. However, our preprocessing step will reduce them to a uniform size of 224 x 224, which will yield 50,176 features.
+The chest X-ray dataset has been retrieved from [Kaggle](https://www.kaggle.com/datasets/pritpal2873/chest-x-ray-dataset-4-categories/data), with the dataset being sourced on Kaggle, and created and used for a [research paper](https://ijnrd.org/papers/IJNRD2311166.pdf) by Pritpal Singh. The dataset comprises 7132 samples with 4273 samples of Pneumonia, 576 samples of COVID-19, 700 samples of Tuberculosis, and 1583 samples of normal chest X-rays. The feature set is composed of all the pixel values for each image, however, there are varying sizes of images within the entire dataset, so no exact number of features can be given. However, our preprocessing step reduces them to a uniform size of 224 x 224, which yields 50,176 features.
 
 ## Report
 
